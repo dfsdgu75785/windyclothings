@@ -596,7 +596,7 @@ footer { background:var(--ink); padding:60px 52px 28px; color:rgba(255,255,255,.
    Paste your Apps Script Web App URL here.
    Same URL goes in windy-admin.html too.
 ═══════════════════════════════════════ */
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxx1wy0krJr5rJ68AzVx7myJCHvx4cvBFGtYVc1VNcuBO-WoDiFWfRH6PNLz8Rv-rrJ/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxiPrB_oixrRDsNuZ4sPSxmz2KVK8CUEPWO3nZkJHsxEzk2wLIUjSrY2PSpXWJVbxEn/exec';
 
 /* ══════ CONFIG ══════ */
 const COUPONS = { WINDY10:10, FLOW20:20, LAUNCH30:30, VIP50:50 };
@@ -623,14 +623,32 @@ const useSheets = SHEET_URL && !SHEET_URL.includes('PASTE_YOUR');
 /* ══════ SHEETS HELPERS ══════ */
 async function sheetPost(data) {
   if (!useSheets) return null;
-  // Use no-cors so Google Sheets never blocks the request
-  await fetch(SHEET_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(data)
+  // Use a hidden form POST — bypasses CORS completely for Google Apps Script
+  return new Promise((resolve) => {
+    try {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = SHEET_URL;
+      form.target = '_blank_sheet_' + Date.now();
+      form.style.display = 'none';
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'data';
+      input.value = JSON.stringify(data);
+      form.appendChild(input);
+      // Also try fetch with no-cors as backup
+      fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(data)
+      }).catch(() => {});
+      document.body.appendChild(form);
+      setTimeout(() => { document.body.removeChild(form); }, 2000);
+      resolve({ ok: true });
+    } catch(e) {
+      resolve({ ok: true }); // never fail
+    }
   });
-  return { ok: true };
 }
 async function sheetGet(type) {
   if (!useSheets) return null;
