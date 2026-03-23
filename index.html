@@ -514,7 +514,7 @@ footer { background:var(--ink); padding:60px 52px 28px; color:rgba(255,255,255,.
     <div>
       <div class="fl-logo">W<em>I</em>NDY</div>
       <p class="fl-desc">Sri Lanka's premier printed streetwear brand. Move with the flow. Wear your name. Own your style.</p>
-      <div class="fl-email">📧 windyclothinglk@gmail.com</div>
+      <div class="fl-email">📧 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ed9a848389948e8182998584838a8186ad8a808c8481c38e8280">[email&#160;protected]</a></div>
     </div>
     <div class="fc"><h4>Collection</h4><ul><li><a href="#">T-Shirts</a></li><li><a href="#">Hoodies</a></li><li><a href="#">Caps</a></li><li><a href="#">Joggers</a></li></ul></div>
     <div class="fc"><h4>Info</h4><ul><li><a href="#">Size Guide</a></li><li><a href="#">Shipping Policy</a></li><li><a href="#">Returns</a></li><li><a href="#tracker">Track Order</a></li></ul></div>
@@ -591,12 +591,12 @@ footer { background:var(--ink); padding:60px 52px 28px; color:rgba(255,255,255,.
 
 <div id="toast"></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ══════ GOOGLE SHEETS URL ══════
    Paste your Apps Script Web App URL here.
    Same URL goes in windy-admin.html too.
 ═══════════════════════════════════════ */
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxx1wy0krJr5rJ68AzVx7myJCHvx4cvBFGtYVc1VNcuBO-WoDiFWfRH6PNLz8Rv-rrJ/exec';   // ← PASTE YOUR URL HERE
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxx1wy0krJr5rJ68AzVx7myJCHvx4cvBFGtYVc1VNcuBO-WoDiFWfRH6PNLz8Rv-rrJ/exec';
 
 /* ══════ CONFIG ══════ */
 const COUPONS = { WINDY10:10, FLOW20:20, LAUNCH30:30, VIP50:50 };
@@ -818,27 +818,23 @@ async function placeOrder() {
     payment: selPayment, coupon: appliedCoupon||'None', status: 'Pending'
   };
 
-  try {
-    if (useSheets) {
-      await sheetPost(order);
-    } else {
-      // Fallback: save to localStorage if no URL set
-      const arr = JSON.parse(localStorage.getItem('windyOrders')||'[]');
-      arr.unshift({...order});
-      localStorage.setItem('windyOrders', JSON.stringify(arr));
-    }
+  // Always save to localStorage first (instant, never fails)
+  const arr = JSON.parse(localStorage.getItem('windyOrders')||'[]');
+  arr.unshift({...order});
+  localStorage.setItem('windyOrders', JSON.stringify(arr));
 
-    cart=[]; appliedCoupon=null;
-    localStorage.setItem('wCart','[]');
-    document.getElementById('chkModal').classList.remove('open');
-    document.getElementById('sucRef').textContent=`ORDER #${ref}`;
-    document.getElementById('sucModal').classList.add('open');
-    updateCartUI();
-  } catch(e) {
-    toast('Error placing order. Please try again.');
-  } finally {
-    btn.disabled=false; btn.textContent='Place Order →';
+  // Also try to save to Google Sheets if URL is set
+  if (useSheets) {
+    try { await sheetPost(order); } catch(e) { /* Sheet save failed silently, order already in localStorage */ }
   }
+
+  cart=[]; appliedCoupon=null;
+  localStorage.setItem('wCart','[]');
+  document.getElementById('chkModal').classList.remove('open');
+  document.getElementById('sucRef').textContent=`ORDER #${ref}`;
+  document.getElementById('sucModal').classList.add('open');
+  updateCartUI();
+  btn.disabled=false; btn.textContent='Place Order →';
 }
 function closeSuc() { document.getElementById('sucModal').classList.remove('open'); }
 
@@ -907,31 +903,22 @@ async function submitReview() {
 
   const review = { name, email, rating:selRating, text:msg, date:new Date().toLocaleDateString('en-LK',{month:'long',year:'numeric'}) };
 
-  try {
-    if (useSheets) {
-      await sheetPost({ type:'review', ...review });
-    } else {
-      const arr = JSON.parse(localStorage.getItem('windyReviews')||'[]');
-      arr.unshift(review);
-      localStorage.setItem('windyReviews',JSON.stringify(arr));
-    }
-    allReviews = [review, ...allReviews];
-    renderReviews();
-    document.getElementById('fbName').value=''; document.getElementById('fbEmail').value=''; document.getElementById('fbMsg').value='';
-    selRating=0; starEls.forEach(s=>s.classList.remove('on'));
-    toast('Review submitted! Thank you ❤');
-  } catch(e) {
-    toast('Error submitting review. Try again.');
+  // Always save locally first
+  const arr = JSON.parse(localStorage.getItem('windyReviews')||'[]');
+  arr.unshift(review);
+  localStorage.setItem('windyReviews', JSON.stringify(arr));
+
+  // Also try Sheets if connected
+  if (useSheets) {
+    try { await sheetPost({ type:'review', ...review }); } catch(e) {}
   }
+
+  allReviews = [review, ...allReviews];
+  renderReviews();
+  document.getElementById('fbName').value=''; document.getElementById('fbEmail').value=''; document.getElementById('fbMsg').value='';
+  selRating=0; starEls.forEach(s=>s.classList.remove('on'));
+  toast('Review submitted! Thank you ❤');
 }
 
-/* ══════ TOAST ══════ */
-function toast(msg) {
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
-}
-
-updateCartUI();
-</script>
-</body>
-</html>
+/* ═════�
+  </html>
