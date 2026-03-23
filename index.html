@@ -623,8 +623,14 @@ const useSheets = SHEET_URL && !SHEET_URL.includes('PASTE_YOUR');
 /* ══════ SHEETS HELPERS ══════ */
 async function sheetPost(data) {
   if (!useSheets) return null;
-  const r = await fetch(SHEET_URL, { method:'POST', body:JSON.stringify(data) });
-  return r.json();
+  // Use no-cors so Google Sheets never blocks the request
+  await fetch(SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(data)
+  });
+  return { ok: true };
 }
 async function sheetGet(type) {
   if (!useSheets) return null;
@@ -921,4 +927,3 @@ async function submitReview() {
 }
 
 /* ═════�
-  </html>
