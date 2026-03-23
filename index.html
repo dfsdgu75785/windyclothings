@@ -941,7 +941,18 @@ async function submitReview() {
   renderReviews();
   document.getElementById('fbName').value=''; document.getElementById('fbEmail').value=''; document.getElementById('fbMsg').value='';
   selRating=0; starEls.forEach(s=>s.classList.remove('on'));
-  toast('Review submitted! Thank you ❤');
+  toast('Review submitted! Thank you \u2764');
 }
 
-/* ═════�
+/* \u2550\u2550\u2550\u2550\u2550\u2550 TOAST \u2550\u2550\u2550\u2550\u2550\u2550 */
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+updateCartUI();
+</script>
+</body>
+</html>
