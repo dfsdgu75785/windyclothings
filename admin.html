@@ -355,7 +355,7 @@ td{padding:11px 13px;color:var(--cream);vertical-align:middle;}
    It looks like: https://script.google.com/macros/s/AKfycby.../exec
    Same URL you put in windy-store.html
 ════════════════════════════════════════ */
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxx1wy0krJr5rJ68AzVx7myJCHvx4cvBFGtYVc1VNcuBO-WoDiFWfRH6PNLz8Rv-rrJ/exec';  /* <-- PASTE YOUR URL HERE between the quotes */
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxx1wy0krJr5rJ68AzVx7myJCHvx4cvBFGtYVc1VNcuBO-WoDiFWfRH6PNLz8Rv-rrJ/exec';  /* Google Sheets connected */
 
 
 /* ══════ STATE ══════ */
@@ -406,8 +406,13 @@ async function sheetGet(type) {
 
 async function sheetPost(data) {
   if (!useSheets()) return { ok: true };
-  const r = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify(data) });
-  return r.json();
+  await fetch(SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(data)
+  });
+  return { ok: true };
 }
 
 /* ══════ NAV ══════ */
